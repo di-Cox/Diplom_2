@@ -35,7 +35,8 @@ class TestCreateOrder:
             assert order_name is not None
 
     @allure.title('Тест на создание заказа без авторизации - Баг: API возвращает код статуса 200 вместо 401')
-    @allure.description('Отправляем POST-Запрос на создание заказа без токена авторизации. По документации API код должен приходить 401, а API возвращает код 200')
+    @allure.description(
+        'Отправляем POST-Запрос на создание заказа без токена авторизации. По документации API код должен приходить 401, а API возвращает код 200')
     def test_create_order_without_auth_fails(self):
         with allure.step('Подготавливаем данные заказа с ингредиентами'):
             order_data = DataForOrder.order_data_with_ingredients
@@ -44,25 +45,21 @@ class TestCreateOrder:
             response = OrderCreation.create_order(order_data)
 
         with allure.step('Найден Баг: API возвращает код 200, ожидается код 401 по документации'):
-            # БАГ: Согласно документации должен возвращаться 401 Unauthorized,
-            # но API реально возвращает 200 OK
-            # Оформляем баг-репорт, тестировать придется проверяя код 200
-
             allure.attach(
                 'Баг: При создании заказа без авторизации API возвращает код 200 вместо 401\n'
                 'Ожидаемый результат: по документации API код возвращается 401 Unauthorized\n'
                 'Фактический результат: возвращается код 200 OK\n'
-                'Выходит, что пользователи могут создавать свои заказы без авторизации'
+                'Выходит, что пользователи могут создавать свои заказы без авторизации\n'
                 'Приоритет ошибки: Критическая',
                 name='Bug Report - Authorization',
                 attachment_type=allure.attachment_type.TEXT
             )
 
-        with allure.step('Делаем проверку фактического результата, код ответа 200'):
-            assert response['response_status_code'] == 200
+        with allure.step('Проверяем по документации: должен быть код 401'):
+            assert response['response_status_code'] == 401
 
-        with allure.step('Проверяем что заказ создается без авторизации(Чего быть не должно)'):
-            assert response['response_json'].get('success') == True
+        with allure.step('Проверяем что заказ НЕ создается без авторизации'):
+            assert response['response_json'].get('success') == False
 
 
     @allure.title('Тест на создание заказа без ингредиентов')
